@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Ariza holatini tekshirish — Elektron Ariza Tizimi{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <!-- Tracking Search Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="px-6 sm:px-8 py-6 border-b border-slate-100 bg-slate-50/70">
+            <h1 class="text-2xl font-bold text-slate-900">Ariza holatini tekshirish</h1>
+            <p class="mt-1.5 text-sm text-slate-600">
+                Arizangizning joriy holatini bilish uchun sizga berilgan ariza raqamini kiriting.
+            </p>
+        </div>
+
+        <form method="post" action="{% url 'applications:track' %}" class="px-6 sm:px-8 py-6 space-y-5" novalidate>
+            {% csrf_token %}
+
+            <div>
+                <label for="{{ form.tracking_code.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {{ form.tracking_code.label }} <span class="text-red-600">*</span>
+                </label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex-1">
+                        {{ form.tracking_code }}
+                    </div>
+                    <button type="submit"
+                            class="shrink-0 inline-flex items-center justify-center rounded-xl bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-xs hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+                        Tekshirish
+                    </button>
+                </div>
+                {% if form.tracking_code.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.tracking_code.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Tracking Result Card (No Personal Information Exposed) -->
+    {% if tracking_result %}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="px-6 sm:px-8 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <span class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Ariza raqami</span>
+                    <span class="mt-1 block text-xl font-mono font-bold text-slate-900">{{ tracking_result.tracking_code }}</span>
+                </div>
+
+                <div>
+                    {% if tracking_result.status == 'pending' %}
+                        <span class="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-semibold text-amber-800">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            {{ tracking_result.status_display }}
+                        </span>
+                    {% elif tracking_result.status == 'under_review' %}
+                        <span class="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-800">
+                            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                            {{ tracking_result.status_display }}
+                        </span>
+                    {% elif tracking_result.status == 'approved' %}
+                        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-800">
+                            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                            {{ tracking_result.status_display }}
+                        </span>
+                    {% elif tracking_result.status == 'rejected' %}
+                        <span class="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-1.5 text-sm font-semibold text-red-800">
+                            <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                            {{ tracking_result.status_display }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="px-6 sm:px-8 py-6">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                        <dt class="text-xs font-semibold uppercase tracking-wider text-slate-500">Ariza holati</dt>
+                        <dd class="mt-1.5 text-base font-bold text-slate-900">{{ tracking_result.status_display }}</dd>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                        <dt class="text-xs font-semibold uppercase tracking-wider text-slate-500">Yuborilgan sana</dt>
+                        <dd class="mt-1.5 text-base font-semibold text-slate-900">
+                            {{ tracking_result.created_at|date:"d.m.Y, H:i" }}
+                        </dd>
+                    </div>
+                </dl>
+
+                <p class="mt-5 text-xs text-slate-500">
+                    Xavfsizlik maqsadida shaxsiy ma'lumotlar va hujjatlar ushbu sahifada ko'rsatilmaydi.
+                </p>
+            </div>
+        </div>
+    {% elif not_found %}
+        <div class="rounded-2xl bg-red-50 border border-red-200 p-6 flex items-start gap-3.5" role="alert">
+            <svg class="w-6 h-6 text-red-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <h2 class="text-sm font-bold text-red-900">Ariza topilmadi</h2>
+                <p class="mt-1 text-sm text-red-700">
+                    Kiritilgan ariza raqami bo'yicha ma'lumot topilmadi. Iltimos, ariza raqamini to'g'ri kiritganingizni tekshiring (masalan: AL-2026-A8K92F).
+                </p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

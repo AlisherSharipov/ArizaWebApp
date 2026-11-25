@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# Private uploaded passport documents (never commit user files)
+private_media/*
+!private_media/.gitkeep
+
+# Environment secrets
+.env
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

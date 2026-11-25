@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ariza topshirish tizimi{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased">
+    <!-- Top official accent bar -->
+    <div class="h-1.5 bg-blue-700 w-full"></div>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 gap-3">
+                <a href="{% url 'applications:home' %}" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center shadow-xs group-hover:bg-blue-800 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="block text-base font-bold text-slate-900 leading-tight">Elektron Ariza Tizimi</span>
+                        <span class="block text-xs text-slate-500">Onlayn ariza topshirish va kuzatish portali</span>
+                    </div>
+                </a>
+
+                <nav class="flex items-center gap-2" aria-label="Asosiy navigatsiya">
+                    <a href="{% url 'applications:home' %}"
+                       class="px-4 py-2 rounded-lg text-sm font-medium transition {% if active_nav == 'home' %}bg-blue-50 text-blue-700 border border-blue-200{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                        Ariza topshirish
+                    </a>
+                    <a href="{% url 'applications:track' %}"
+                       class="px-4 py-2 rounded-lg text-sm font-medium transition {% if active_nav == 'track' %}bg-blue-50 text-blue-700 border border-blue-200{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900{% endif %}">
+                        Ariza holatini tekshirish
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 py-8 sm:py-12">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for message in messages %}
+                        <div class="rounded-xl px-4 py-3 text-sm font-medium border flex items-start gap-3
+                            {% if message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800
+                            {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+                            {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}"
+                             role="alert">
+                            <span class="mt-0.5">
+                                {% if message.tags == 'success' %}
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                {% endif %}
+                            </span>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+                <p>&copy; {% now "Y" %} Elektron Ariza Tizimi. Barcha shaxsiy ma'lumotlar himoyalangan.</p>
+                <div class="flex items-center gap-5">
+                    <a href="{% url 'applications:home' %}" class="hover:text-blue-700 transition">Ariza topshirish</a>
+                    <a href="{% url 'applications:track' %}" class="hover:text-blue-700 transition">Ariza holatini tekshirish</a>
+                 
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

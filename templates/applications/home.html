@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Ariza topshirish — Elektron Ariza Tizimi{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <!-- Application Form Card -->
+    <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="px-6 sm:px-8 py-6 border-b border-slate-100 bg-slate-50/70">
+            <h1 class="text-2xl font-bold text-slate-900">Ariza topshirish</h1>
+            <p class="mt-1.5 text-sm text-slate-600">
+                Quyidagi ma'lumotlarni aniq to'ldiring va pasportingizning PDF nusxasini yuklang.
+            </p>
+        </div>
+
+        <form id="application-form"
+              method="post"
+              enctype="multipart/form-data"
+              novalidate
+              class="px-6 sm:px-8 py-6 space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Full Name -->
+            <div>
+                <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {{ form.full_name.label }} <span class="text-red-600">*</span>
+                </label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+                {% else %}
+                    <p class="mt-1.5 text-xs text-slate-500">Pasportda ko'rsatilganidek to'liq kiriting.</p>
+                {% endif %}
+            </div>
+
+            <!-- Phone Number & Passport Number -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                        {{ form.phone_number.label }} <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                    {% else %}
+                        <p class="mt-1.5 text-xs text-slate-500">Masalan: +998901234567</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.passport_number.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                        {{ form.passport_number.label }} <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.passport_number }}
+                    {% if form.passport_number.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.passport_number.errors.0 }}</p>
+                    {% else %}
+                        <p class="mt-1.5 text-xs text-slate-500">2 ta harf va 7 ta raqam (masalan: AA1234567)</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Passport PDF Upload -->
+            <div>
+                <label for="{{ form.passport_file.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                    {{ form.passport_file.label }} <span class="text-red-600">*</span>
+                </label>
+
+                <div id="pdf-dropzone"
+                     class="relative rounded-xl border-2 border-dashed {% if form.passport_file.errors %}border-red-300 bg-red-50/40{% else %}border-slate-300 bg-slate-50/60 hover:border-blue-400 hover:bg-blue-50/30{% endif %} p-6 text-center transition cursor-pointer">
+                    {{ form.passport_file }}
+
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mb-3">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                        </div>
+                        <p class="text-sm font-medium text-slate-800">
+                            PDF faylni tanlash uchun bosing yoki bu yerga tashlang
+                        </p>
+                        <p class="mt-1 text-xs text-slate-500">
+                            Faqat PDF (.pdf) formati • Maksimal hajm: 5 MB
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Selected File Preview -->
+                <div id="selected-file-box" class="hidden mt-3 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-700 text-white text-xs font-bold">PDF</span>
+                        <div class="min-w-0">
+                            <p id="selected-file-name" class="text-sm font-medium text-slate-900 truncate"></p>
+                            <p id="selected-file-size" class="text-xs text-slate-500"></p>
+                        </div>
+                    </div>
+                    <button type="button"
+                            id="clear-file-btn"
+                            class="shrink-0 text-xs font-semibold text-red-600 hover:text-red-800 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition">
+                        O'chirish
+                    </button>
+                </div>
+
+                <!-- Client-side file error -->
+                <p id="file-client-error" class="hidden mt-2 text-sm text-red-600" role="alert"></p>
+
+                <!-- Server-side file error -->
+                {% if form.passport_file.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.passport_file.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit"
+                        id="submit-btn"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-blue-700 px-7 py-3.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-65 disabled:cursor-not-allowed transition">
+                    <span id="submit-spinner" class="spinner hidden" aria-hidden="true"></span>
+                    <span id="submit-btn-text">Arizani yuborish</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Side Information Panel -->
+    <aside class="lg:col-span-4 space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
+            <h2 class="text-base font-bold text-slate-900 mb-4">Ariza topshirish tartibi</h2>
+            <ol class="space-y-4 text-sm text-slate-600">
+                <li class="flex items-start gap-3">
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center mt-0.5">1</span>
+                    <span>Shaxsiy ma'lumotlaringizni to'ldiring va pasportning PDF nusxasini yuklang.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center mt-0.5">2</span>
+                    <span>Ariza yuborilgach, sizga maxsus unikal <strong>Ariza raqami</strong> beriladi.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center mt-0.5">3</span>
+                    <span>Ushbu raqam orqali istalgan vaqtda arizangiz holatini tekshirishingiz mumkin.</span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="bg-blue-50/70 rounded-2xl border border-blue-100 p-6">
+            <div class="flex items-center gap-2.5 text-blue-900 font-semibold text-sm mb-2">
+                <svg class="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>Maxfiylik kafolati</span>
+            </div>
+            <p class="text-xs leading-relaxed text-slate-600">
+                Yuklangan pasport nusxalari yopiq va xavfsiz muhitda saqlanadi hamda faqat vakolatli administratorlar tomonidan ko'rib chiqiladi.
+            </p>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+    const form = document.getElementById("application-form");
+    const fileInput = document.getElementById("{{ form.passport_file.id_for_label }}");
+    const dropzone = document.getElementById("pdf-dropzone");
+    const selectedBox = document.getElementById("selected-file-box");
+    const selectedName = document.getElementById("selected-file-name");
+    const selectedSize = document.getElementById("selected-file-size");
+    const clearFileBtn = document.getElementById("clear-file-btn");
+    const fileError = document.getElementById("file-client-error");
+    const submitBtn = document.getElementById("submit-btn");
+    const submitSpinner = document.getElementById("submit-spinner");
+    const submitBtnText = document.getElementById("submit-btn-text");
+    const passportInput = document.getElementById("{{ form.passport_number.id_for_label }}");
+
+    let isSubmitting = false;
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    function showFileError(message) {
+        fileError.textContent = message;
+        fileError.classList.remove("hidden");
+    }
+
+    function clearFileError() {
+        fileError.textContent = "";
+        fileError.classList.add("hidden");
+    }
+
+    function resetFileSelection() {
+        fileInput.value = "";
+        selectedBox.classList.add("hidden");
+        selectedName.textContent = "";
+        selectedSize.textContent = "";
+    }
+
+    function validateSelectedFile(file) {
+        clearFileError();
+        if (!file) {
+            selectedBox.classList.add("hidden");
+            return false;
+        }
+        const nameLower = file.name.toLowerCase();
+        if (!nameLower.endsWith(".pdf")) {
+            resetFileSelection();
+            showFileError("Faqat PDF formatidagi (.pdf) fayllar qabul qilinadi.");
+            return false;
+        }
+        if (file.size === 0) {
+            resetFileSelection();
+            showFileError("Yuklangan PDF fayl bo'sh bo'lishi mumkin emas.");
+            return false;
+        }
+        if (file.size > MAX_SIZE_BYTES) {
+            resetFileSelection();
+            showFileError("Fayl hajmi 5 MB dan oshmasligi kerak.");
+            return false;
+        }
+
+        selectedName.textContent = file.name;
+        selectedSize.textContent = formatBytes(file.size);
+        selectedBox.classList.remove("hidden");
+        return true;
+    }
+
+    if (passportInput) {
+        passportInput.addEventListener("input", function () {
+            this.value = this.value.toUpperCase();
+        });
+    }
+
+    dropzone.addEventListener("click", function () {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener("change", function () {
+        if (this.files && this.files.length > 0) {
+            validateSelectedFile(this.files[0]);
+        } else {
+            selectedBox.classList.add("hidden");
+        }
+    });
+
+    ["dragenter", "dragover"].forEach(function (eventName) {
+        dropzone.addEventListener(eventName, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.add("dropzone-active");
+        });
+    });
+
+    ["dragleave", "drop"].forEach(function (eventName) {
+        dropzone.addEventListener(eventName, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.remove("dropzone-active");
+        });
+    });
+
+    dropzone.addEventListener("drop", function (e) {
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fileInput.files = dt.files;
+            validateSelectedFile(files[0]);
+        }
+    });
+
+    clearFileBtn.addEventListener("click", function () {
+        resetFileSelection();
+        clearFileError();
+    });
+
+    form.addEventListener("submit", function (e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+
+        if (fileInput.files && fileInput.files.length > 0) {
+            if (!validateSelectedFile(fileInput.files[0])) {
+                e.preventDefault();
+                return;
+            }
+        } else {
+            showFileError("Passport nusxasi (PDF) faylini yuklash majburiy.");
+            e.preventDefault();
+            return;
+        }
+
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitSpinner.classList.remove("hidden");
+        submitBtnText.textContent = "Yuborilmoqda...";
+    });
+})();
+</script>
+{% endblock %}

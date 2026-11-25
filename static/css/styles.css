@@ -1,0 +1,25 @@
+/* Custom portal styles complementing Tailwind CSS */
+html {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  scroll-behavior: smooth;
+}
+
+.dropzone-active {
+  border-color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+}
+
+.spinner {
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 9999px;
+  width: 1.125rem;
+  height: 1.125rem;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
